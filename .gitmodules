@@ -1,0 +1,3 @@
+[submodule "libs/TurboScraper"]
+	path = libs/TurboScraper
+	url = https://github.com/Yugsolanki/TurboScraper.git
