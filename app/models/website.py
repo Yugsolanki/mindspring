@@ -19,7 +19,7 @@ class Website(Base):
     # This prevents creating rows with id=2, id=3, etc.
     __table_args__ = (CheckConstraint("id = 1", name="singleton_website_constraint"),)
 
-    id = Column(Integer, primary_key=True, server_default=1)
+    id = Column(Integer, primary_key=True, server_default="1")
     domain = Column(
         String, unique=True, index=True, default="example.com", nullable=False
     )
