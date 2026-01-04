@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import logger
 from app.api.v1.router import api_router
-from app.core.database import engine
+from app.core.database import engine, SessionLocal
 from contextlib import asynccontextmanager
+from sqlalchemy import select
+from app.models import Website
 
 
 @asynccontextmanager
@@ -18,6 +20,32 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
         raise e
+
+    # INITIALIZE SINGLETON WEBSITE CONFIG
+    async with SessionLocal() as session:
+        try:
+            logger.info("Checking for default Website Configuration...")
+
+            result = await session.execute(select(Website).where(Website.id == 1))
+            website = result.scalars().first()
+
+            if not website:
+                logger.info("No config found. Creating Default Website (ID=1)...")
+                new_website = Website(
+                    id=1,
+                    title="MindSpring Default",
+                    description="Initial default configuration",
+                )
+                session.add(new_website)
+                await session.commit()
+                logger.info("Default Website Configuration created successfully.")
+            else:
+                logger.info(
+                    f"Website Configuration loaded: {website.domain} (ID: {website.id})"
+                )
+        except Exception as e:
+            logger.error(f"Error initializing singleton Website config: {e}")
+            raise e
 
     yield  # <--------- Application runs here
 
