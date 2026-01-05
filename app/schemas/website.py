@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from datetime import datetime
 import re
 from croniter import croniter
@@ -151,10 +151,9 @@ class WebsiteBase(BaseModel):
 
         return self
 
-    class Config:
-        # This allows Pydantic to read data even if it is passed as a standard dict
-        # and not an object with attributes.
-        from_attributes = True
+    # This allows Pydantic to read data even if it is passed as a standard dict
+    # and not an object with attributes.
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WebsiteCreate(WebsiteBase):
@@ -315,5 +314,6 @@ class WebsiteResponse(WebsiteBase):
     created_at: datetime = Field(..., frozen=True)
     updated_at: datetime = Field(..., frozen=True)
 
-    class Config:
-        from_attributes = True
+    # This allows Pydantic to read data even if it is passed as a standard dict
+    # and not an object with attributes.
+    model_config = ConfigDict(from_attributes=True)

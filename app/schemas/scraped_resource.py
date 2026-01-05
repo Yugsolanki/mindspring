@@ -1,5 +1,5 @@
-from typing import List, Optional, TYPE_CHECKING
-from pydantic import BaseModel, Field
+from typing import List, Optional
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 
@@ -16,8 +16,7 @@ class ScrapedResourceBase(BaseModel):
         description="Current status: pending, processing, completed, failed",
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScrapedResourceCreate(ScrapedResourceBase):
@@ -48,8 +47,7 @@ class ScrapedResourceResponse(ScrapedResourceBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScrapedResourceWithContents(ScrapedResourceResponse):
@@ -63,7 +61,7 @@ class ScrapedResourceWithContents(ScrapedResourceResponse):
 
 # Perform the actual import AFTER the class is defined.
 # This resolves the circular dependency (Class defined -> Import -> Rebuild).
-from .scraped_content import ScrapedContentResponse
+from .scraped_content import ScrapedContentResponse  # noqa
 
 # Update the forward references in the model
 ScrapedResourceWithContents.model_rebuild()
