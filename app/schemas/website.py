@@ -3,6 +3,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 
+# Define the default generator as a standalone function
+def get_default_user_agents() -> List[str]:
+    return ["Mozilla/5.0 (compatible; MindSpringBot/1.0)"]
+
+
 class WebsiteBase(BaseModel):
     domain: str = Field(
         default="example.com", description="The primary domain of the website"
@@ -36,7 +41,7 @@ class WebsiteBase(BaseModel):
         default=2, ge=0, description="Delay between requests in seconds"
     )
     user_agents: List[str] = Field(
-        default=lambda: ["Mozilla/5.0 (compatible; MindSpringBot/1.0)"],
+        default_factory=get_default_user_agents,
         description="List of user agents to rotate",
     )
     scraping_schedule: str = Field(

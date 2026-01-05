@@ -2,11 +2,6 @@ from typing import List, Optional, TYPE_CHECKING
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-# Use TYPE_CHECKING to avoid circular import errors if these models
-# are in the same file as your other schemas.
-if TYPE_CHECKING:
-    from .scraped_content import ScrapedContentResponse
-
 
 class ScrapedResourceBase(BaseModel):
     website_id: int = Field(
@@ -64,3 +59,11 @@ class ScrapedResourceWithContents(ScrapedResourceResponse):
     """
 
     contents: List["ScrapedContentResponse"] = []
+
+
+# Perform the actual import AFTER the class is defined.
+# This resolves the circular dependency (Class defined -> Import -> Rebuild).
+from .scraped_content import ScrapedContentResponse
+
+# Update the forward references in the model
+ScrapedResourceWithContents.model_rebuild()
