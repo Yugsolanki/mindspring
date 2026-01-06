@@ -18,7 +18,7 @@ class ScrapedResource(Base):
         String, default="pending", index=True
     )  # pending, processing, completed, failed
 
-    last_scraped = Column(DateTime(timezone=True), server_default=func.now())
+    last_scraped = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
