@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "mindspring_db")
 
+    # Redis
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
+
     # Constructed database url
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
