@@ -26,6 +26,9 @@ class Website(Base):
     title = Column(String)
     description = Column(String)
 
+    # Celery Config
+    timezone = Column(String(50), default="UTC")
+
     # URL Management
     white_listed_domain = Column(ARRAY(String), default=list)
     black_listed_domain = Column(ARRAY(String), default=list)
@@ -35,6 +38,7 @@ class Website(Base):
     # Scraping Rules
     respect_robots = Column(Boolean, default=False)
     max_concurrent = Column(Integer, default=8)
+    playwright_timeout = Column(Integer, default=30)
     timeout = Column(Integer, default=15)
     max_retries = Column(Integer, default=3)
     max_depth = Column(Integer, default=100)

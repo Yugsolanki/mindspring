@@ -3,15 +3,15 @@ from pydantic import BaseModel, Field, field_validator, model_validator, ConfigD
 from datetime import datetime
 import re
 from croniter import croniter
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 # Regex for validating domain
-DOMAIN_REGEX = re.compile(r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
+DOMAIN_REGEX = re.compile(r"^(https?://)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$")
 
 
 def normalize_domain(domain: str) -> str:
     domain = domain.strip().lower()
-    domain = domain.replace("http://", "").replace("https://", "")
     return domain.rstrip("/")
 
 
@@ -47,12 +47,18 @@ class WebsiteBase(BaseModel):
         default_factory=list, description="Regex patterns for blocked paths"
     )
 
+    # Celery Config
+    timezone: str = Field(default="UTC", description="Timezone for Celery")
+
     # Scraping Rules
     respect_robots: bool = Field(
         default=False, description="Whether to respect robots.txt"
     )
     max_concurrent: int = Field(
         default=8, ge=1, le=100, description="Max concurrent requests"
+    )
+    playwright_timeout: int = Field(
+        default=30, ge=1, le=120, description="Playwright timeout in seconds"
     )
     timeout: int = Field(
         default=15, ge=1, le=120, description="Request timeout in seconds"
@@ -75,6 +81,15 @@ class WebsiteBase(BaseModel):
     # ===================
     # Field Validators
     # ===================
+    @field_validator("timezone", mode="before")
+    @classmethod
+    def validate_timezone(cls, v: str) -> str:
+        try:
+            ZoneInfo(v)
+        except ZoneInfoNotFoundError:
+            raise ValueError(f"Invalid timezone: {v}")
+        return v
+
     @field_validator("domain", mode="before")
     @classmethod
     def validate_domain(cls, v: str) -> str:
@@ -181,8 +196,11 @@ class WebsiteUpdate(BaseModel):
     white_listed_path_patterns: Optional[List[str]] = None
     black_listed_path_patterns: Optional[List[str]] = None
 
+    timezone: Optional[str] = None
+
     respect_robots: Optional[bool] = None
     max_concurrent: Optional[int] = Field(default=None, ge=1, le=100)
+    playwright_timeout: Optional[int] = Field(default=None, ge=1, le=120)
     timeout: Optional[int] = Field(default=None, ge=1, le=120)
     max_retries: Optional[int] = Field(default=None, ge=0, le=10)
     max_depth: Optional[int] = Field(default=None, ge=1, le=1000)
@@ -193,6 +211,17 @@ class WebsiteUpdate(BaseModel):
     # ====================
     # Field Validators
     # ====================
+    @field_validator("timezone", mode="before")
+    @classmethod
+    def validate_timezone_if_present(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:  # If the timezone is present
+            try:
+                ZoneInfo(v)
+            except ZoneInfoNotFoundError:
+                raise ValueError(f"Invalid timezone: {v}")
+            return v
+        return v
+
     @field_validator("domain", mode="before")
     @classmethod
     def normalize_domain_if_present(cls, v: Optional[str]) -> Optional[str]:
