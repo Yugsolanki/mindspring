@@ -81,7 +81,7 @@ class WebsiteBase(BaseModel):
     # ===================
     # Field Validators
     # ===================
-    @field_validator("timezone", mode="before")
+    @field_validator("timezone")
     @classmethod
     def validate_timezone(cls, v: str) -> str:
         try:

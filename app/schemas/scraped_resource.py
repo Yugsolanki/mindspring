@@ -1,34 +1,22 @@
 from typing import List, Optional, Literal
-from pydantic import BaseModel, Field, ConfigDict, HttpUrl, model_validator
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from datetime import datetime
+from app.utils.mimetypes import AllowedFileTypes
 
 ScrapedStatus = Literal["pending", "processing", "completed", "failed"]
 
-AllowedContentTypes = Literal[
-    "text/html",
-    "text/plain",
-    "application/json",
-    "application/xml",
-    "application/xhtml+xml",
-    "application/rss+xml",
-    "application/atom+xml",
-    "application/pdf",
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "image/webp",
-]
-
 
 class ScrapedResourceBase(BaseModel):
+    """
+    Base schema for ScrapedResource.
+    """
+
     website_id: int = Field(
-        ..., description="ID of the website this resource belongs to", ge=1, le=1
+        default=1, description="ID of the website this resource belongs to", ge=1, le=1
     )
-    url: HttpUrl = Field(
-        ..., description="The full URL of the resource", max_length=2048
-    )
-    content_type: Optional[AllowedContentTypes] = Field(
-        None, description="MIME type (e.g., 'text/html')"
+    url: str = Field(..., description="The full URL of the resource", max_length=2048)
+    content_type: Optional[AllowedFileTypes] = Field(
+        default=None, description="MIME type (e.g., 'text/html')"
     )
     scrape_status: ScrapedStatus = Field(
         default="pending",
@@ -51,9 +39,9 @@ class ScrapedResourceUpdate(BaseModel):
     Schema for updating a ScrapedResource (e.g., changing status).
     """
 
-    url: Optional[HttpUrl] = Field(None, max_length=2048)
-    content_type: Optional[AllowedContentTypes] = None
-    scrape_status: Optional[ScrapedStatus] = None
+    url: Optional[str] = Field(None, max_length=2048)
+    content_type: Optional[AllowedFileTypes] = Field(None)
+    scrape_status: Optional[ScrapedStatus] = Field(None)
 
     # ==================
     # Model Validators
