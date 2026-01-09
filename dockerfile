@@ -16,11 +16,21 @@ RUN pip install uv
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install Python dependencies using uv
-RUN uv pip install --system -r pyproject.toml
-
 # Copy application code
 COPY . .
+
+# Install TurboScraper as a package
+WORKDIR /app/libs/TurboScraper
+RUN uv pip install --system -e .
+
+# Install Playwright browsers
+RUN playwright install chromium
+RUN playwright install-deps chromium
+
+WORKDIR /app
+
+# Install Python dependencies using uv
+RUN uv pip install --system -r pyproject.toml
 
 # Expose port
 EXPOSE 8000

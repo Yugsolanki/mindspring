@@ -33,4 +33,3 @@ alembic/versions/__pycache__/
 
 # Extras
 .ruff_cache
-libs
