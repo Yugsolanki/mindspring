@@ -112,7 +112,10 @@ class ScrapedResourcesRepository:
 
     async def delete_all(self) -> int:
         try:
-            count = select(func.count(ScrapedResource.id))
+            count_stmt = select(func.count(ScrapedResource.id))
+            count_result = await self.session.execute(count_stmt)
+            count = count_result.scalar()
+
             await self.session.execute(delete(ScrapedResource))
             await self.session.commit()
             return count
