@@ -4,11 +4,9 @@ from app.schemas.scraped_resource import (
     ScrapedResourceResponse,
     ScrapedResourceWithContents,
 )
-from sqlalchemy import select, delete, func
+from sqlalchemy import select, delete as delete_stmt, func
 from app.models.scraped_resource import ScrapedResource
 from app.core.logging import logger
-
-# from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ScrapedResourcesRepository:
@@ -18,6 +16,14 @@ class ScrapedResourcesRepository:
     async def list_all(
         self, offset: int = 0, limit: int = 100
     ) -> list[ScrapedResourceResponse]:
+        """
+        List all scraped resources
+        Args:
+            offset (int): The offset to start from
+            limit (int): The limit of results to return
+        Returns:
+            list[ScrapedResourceResponse]: The list of scraped resources
+        """
         try:
             result = await self.session.execute(
                 select(ScrapedResource).offset(offset).limit(limit)
@@ -28,6 +34,11 @@ class ScrapedResourcesRepository:
             raise
 
     async def list_urls(self) -> list[str]:
+        """
+        List all scraped resource urls
+        Returns:
+            list[str]: The list of scraped resource urls
+        """
         try:
             result = await self.session.execute(select(ScrapedResource.url))
             return result.scalars().all()
@@ -36,6 +47,13 @@ class ScrapedResourcesRepository:
             raise
 
     async def get_by_id(self, id: int) -> ScrapedResourceWithContents | None:
+        """
+        Get a scraped resource by id
+        Args:
+            id (int): The id of the scraped resource to get
+        Returns:
+            ScrapedResourceWithContents | None: The scraped resource or None if not found
+        """
         try:
             result = await self.session.execute(
                 select(ScrapedResource).where(ScrapedResource.id == id)
@@ -49,6 +67,13 @@ class ScrapedResourcesRepository:
             raise
 
     async def create(self, item_in: ScrapedResourceCreate) -> ScrapedResourceResponse:
+        """
+        Create a new scraped resource
+        Args:
+            item_in (ScrapedResourceCreate): The scraped resource to create
+        Returns:
+            ScrapedResourceResponse: The created scraped resource
+        """
         try:
             new_scraped_resource = ScrapedResource(**item_in.model_dump())
             self.session.add(new_scraped_resource)
@@ -64,6 +89,13 @@ class ScrapedResourcesRepository:
     async def create_all(
         self, items_in: list[ScrapedResourceCreate]
     ) -> list[ScrapedResourceResponse]:
+        """
+        Create multiple new scraped resources
+        Args:
+            items_in (list[ScrapedResourceCreate]): The scraped resources to create
+        Returns:
+            list[ScrapedResourceResponse]: The created scraped resources
+        """
         try:
             new_scraped_resources = [
                 ScrapedResource(**item_in.model_dump()) for item_in in items_in
@@ -80,6 +112,14 @@ class ScrapedResourcesRepository:
     async def update(
         self, id: int, item_in: ScrapedResourceUpdate
     ) -> ScrapedResourceResponse | None:
+        """
+        Update a scraped resource
+        Args:
+            id (int): The id of the scraped resource to update
+            item_in (ScrapedResourceUpdate): The scraped resource to update
+        Returns:
+            ScrapedResourceResponse | None: The updated scraped resource or None if not found
+        """
         try:
             resource = await self.get_by_id(id=id)
             if not resource:
@@ -97,6 +137,13 @@ class ScrapedResourcesRepository:
             raise
 
     async def delete(self, id: int) -> ScrapedResourceResponse:
+        """
+        Delete a scraped resource
+        Args:
+            id (int): The id of the scraped resource to delete
+        Returns:
+            ScrapedResourceResponse: The deleted scraped resource
+        """
         try:
             resource = await self.get_by_id(id=id)
             if not resource:
@@ -111,12 +158,17 @@ class ScrapedResourcesRepository:
             raise
 
     async def delete_all(self) -> int:
+        """
+        Delete all scraped resources
+        Returns:
+            int: The number of deleted scraped resources
+        """
         try:
             count_stmt = select(func.count(ScrapedResource.id))
             count_result = await self.session.execute(count_stmt)
             count = count_result.scalar()
 
-            await self.session.execute(delete(ScrapedResource))
+            await self.session.execute(delete_stmt(ScrapedResource))
             await self.session.commit()
             return count
         except Exception as e:
