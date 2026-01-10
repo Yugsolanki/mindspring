@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -29,4 +29,8 @@ class ScrapedResource(Base):
     # A resource can have one (or multiple) content blocks
     contents = relationship(
         "ScrapedContent", back_populates="resource", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        UniqueConstraint("url", "website_id", name="scraped_resource_url_website_id"),
     )

@@ -7,6 +7,7 @@ services:
     image: postgres:18-alpine
     container_name: mindspring_postgres
     restart: unless-stopped
+    profiles: [debug, prod]
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -27,6 +28,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: mindspring_pgadmin
     restart: unless-stopped
+    profiles: [debug, prod]
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
@@ -38,5 +40,83 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - mindspring_net
+
+  redis:
+    image: redis:8-alpine
+    container_name: mindspring_redis
+    restart: unless-stopped
+    profiles: [debug, prod]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - ./storage/redis:/data
+    networks:
+      - mindspring_net
+
+  api:
+    build: .
+    container_name: mindspring_api
+    restart: unless-stopped
+    profiles: [prod]
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file: .env.docker
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mindspring_net
+
+  celery:
+    build: .
+    container_name: mindspring_celery
+    restart: unless-stopped
+    profiles: [prod]
+    command: celery -A app.core.celery_app worker --loglevel=info
+    env_file: .env.docker
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    networks:
+      - mindspring_net
+
+  flower:
+    build: .
+    container_name: mindspring_flower
+    restart: unless-stopped
+    profiles: [prod]
+    command: celery -A app.core.celery_app flower --loglevel=info --port=5555
+    env_file: .env.docker
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+    ports:
+      - "5555:5555"
+    volumes:
+      - .:/app
+    depends_on:
+      - celery
     networks:
       - mindspring_net

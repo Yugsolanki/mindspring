@@ -1,5 +1,11 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, website, scraped_resource, scraped_content
+from app.api.v1.endpoints import (
+    health,
+    website,
+    scraped_resource,
+    scraped_content,
+    scraping,
+)
 
 api_router = APIRouter()
 
@@ -11,3 +17,4 @@ api_router.include_router(
 api_router.include_router(
     scraped_content.router, prefix="/content", tags=["Scraped Content"]
 )
+api_router.include_router(scraping.router, prefix="/scraping", tags=["Scraping"])

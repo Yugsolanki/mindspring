@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+.env
+
+# Python artifacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Docker
+Dockerfile
+docker-compose.yaml
+
+# Local data/logs
+*.log
+
+# Storage
+storage
+
+# Ignore only the cache, keep the scripts
+alembic/__pycache__/
+alembic/versions/__pycache__/
+
+# Extras
+.ruff_cache
