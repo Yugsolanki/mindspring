@@ -2,6 +2,7 @@ from app.schemas.website import WebsiteCreate, WebsiteResponse, WebsiteUpdate
 from sqlalchemy import select
 from app.models.website import Website
 from app.core.logging import logger
+from app.core.exceptions import DatabaseException, NotFoundException
 
 
 class WebsiteRepository:
@@ -20,12 +21,12 @@ class WebsiteRepository:
 
             # Unlikely to happen due to lifespan config but why not
             if not website:
-                return None
+                return NotFoundException("Website not found")
 
             return website
         except Exception as e:
             logger.exception(f"Error getting Website: {str(e)}")
-            raise
+            raise DatabaseException("Error getting Website")
 
     async def create(self, item_in: WebsiteCreate) -> WebsiteResponse:
         """
@@ -44,7 +45,7 @@ class WebsiteRepository:
         except Exception as e:
             logger.exception(f"Error creating Website: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error creating Website")
 
     async def update(self, id: int, item_in: WebsiteUpdate) -> WebsiteResponse | None:
         """
@@ -57,8 +58,6 @@ class WebsiteRepository:
         """
         try:
             website = await self.get()
-            if not website:
-                return None
 
             for field, value in item_in.model_dump(exclude_unset=True).items():
                 setattr(website, field, value)
@@ -69,7 +68,7 @@ class WebsiteRepository:
         except Exception as e:
             logger.exception(f"Error updating Website: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error updating Website")
 
     async def delete(self, id: int) -> WebsiteResponse:
         """
@@ -81,8 +80,6 @@ class WebsiteRepository:
         """
         try:
             website = await self.get()
-            if not website:
-                return None
 
             await self.session.delete(website)
             await self.session.commit()
@@ -90,4 +87,4 @@ class WebsiteRepository:
         except Exception as e:
             logger.exception(f"Error deleting Website: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error deleting Website")

@@ -6,13 +6,14 @@ from app.schemas.scraped_content import (
 from sqlalchemy import select, delete as delete_stmt, func
 from app.models.scraped_content import ScrapedContent
 from app.core.logging import logger
+from app.core.exceptions import DatabaseException, NotFoundException
 
 
 class ScrapedContentRepository:
     def __init__(self, session):
         self.session = session
 
-    async def list_all(
+    async def get_all(
         self, offset: int = 0, limit: int = 100
     ) -> list[ScrapedContentResponse]:
         """
@@ -30,7 +31,7 @@ class ScrapedContentRepository:
             return result.scalars().all()
         except Exception as e:
             logger.exception(f"Error listing all scraped contents: {str(e)}")
-            raise
+            raise DatabaseException("Error listing all scraped contents")
 
     async def get_by_id(self, id: int) -> ScrapedContentResponse | None:
         """
@@ -46,11 +47,11 @@ class ScrapedContentRepository:
             )
             content = result.scalars().first()
             if not content:
-                return None
+                return NotFoundException("Scraped Content not found")
             return content
         except Exception as e:
             logger.exception(f"Error getting scraped content by id: {str(e)}")
-            raise
+            raise DatabaseException("Error getting scraped content by id")
 
     async def create(self, item_in: ScrapedContentCreate) -> ScrapedContentResponse:
         """
@@ -70,7 +71,7 @@ class ScrapedContentRepository:
         except Exception as e:
             logger.exception(f"Error creating scraped content: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error creating scraped content")
 
     async def create_all(
         self, items_in: list[ScrapedContentCreate]
@@ -93,7 +94,7 @@ class ScrapedContentRepository:
         except Exception as e:
             logger.exception(f"Error creating scraped contents: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error creating scraped contents")
 
     async def update(
         self, id: int, item_in: ScrapedContentUpdate
@@ -109,7 +110,7 @@ class ScrapedContentRepository:
         try:
             content = await self.get_by_id(id=id)
             if not content:
-                return None
+                return NotFoundException("Scraped Content not found")
 
             for field, value in item_in.model_dump(exclude_unset=True).items():
                 setattr(content, field, value)
@@ -120,7 +121,7 @@ class ScrapedContentRepository:
         except Exception as e:
             logger.exception(f"Error updating scraped content: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error updating scraped content")
 
     async def delete(self, id: int) -> ScrapedContentResponse:
         """
@@ -133,7 +134,7 @@ class ScrapedContentRepository:
         try:
             content = await self.get_by_id(id=id)
             if not content:
-                return None
+                return NotFoundException("Scraped Content not found")
 
             await self.session.delete(content)
             await self.session.commit()
@@ -141,7 +142,7 @@ class ScrapedContentRepository:
         except Exception as e:
             logger.exception(f"Error deleting scraped content: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error deleting scraped content")
 
     async def delete_all(self) -> int:
         """
@@ -160,4 +161,4 @@ class ScrapedContentRepository:
         except Exception as e:
             logger.exception(f"Error deleting all scraped contents: {str(e)}")
             await self.session.rollback()
-            raise
+            raise DatabaseException("Error deleting all scraped contents")

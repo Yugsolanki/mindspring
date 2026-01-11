@@ -1,34 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.core.database import get_db
-from app.models.scraped_content import ScrapedContent
 from app.schemas.scraped_content import (
     ScrapedContentResponse,
     ScrapedContentUpdate,
 )
+from app.repositories.scraped_content_repository import ScrapedContentRepository
+from app.core.response import SuccessResponseModel
 
 router = APIRouter()
 
 
-@router.get("/{content_id}", response_model=ScrapedContentResponse)
+@router.get(
+    "/{content_id}", response_model=SuccessResponseModel[ScrapedContentResponse]
+)
 async def get_content(content_id: int, db: AsyncSession = Depends(get_db)):
     """
     Get a specific content chunk by ID.
     """
-    result = await db.execute(
-        select(ScrapedContent).where(ScrapedContent.id == content_id)
-    )
-    content = result.scalar_one_or_none()
-
-    if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
-
-    return content
+    content = await ScrapedContentRepository(db).get_by_id(id=content_id)
+    return SuccessResponseModel(data=content)
 
 
-@router.patch("/{content_id}", response_model=ScrapedContentResponse)
+@router.patch(
+    "/{content_id}", response_model=SuccessResponseModel[ScrapedContentResponse]
+)
 async def update_content(
     content_id: int,
     content_in: ScrapedContentUpdate,
@@ -37,37 +34,18 @@ async def update_content(
     """
     Update a specific content chunk.
     """
-    result = await db.execute(
-        select(ScrapedContent).where(ScrapedContent.id == content_id)
+    content = await ScrapedContentRepository(db).update(
+        id=content_id, item_in=content_in
     )
-    db_obj = result.scalar_one_or_none()
-
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Content not found")
-
-    update_data = content_in.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_obj, field, value)
-
-    db.add(db_obj)
-    await db.commit()
-    await db.refresh(db_obj)
-    return db_obj
+    return SuccessResponseModel(data=content)
 
 
-@router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{content_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_content(content_id: int, db: AsyncSession = Depends(get_db)):
     """
     Delete a specific content chunk.
     """
-    result = await db.execute(
-        select(ScrapedContent).where(ScrapedContent.id == content_id)
-    )
-    obj = result.scalar_one_or_none()
-
-    if not obj:
-        raise HTTPException(status_code=404, detail="Content not found")
-
-    await db.delete(obj)
-    await db.commit()
-    return None
+    await ScrapedContentRepository(db).delete(id=content_id)

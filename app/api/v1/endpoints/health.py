@@ -3,7 +3,7 @@ from app.core.config import settings
 from app.core.database import engine
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi import HTTPException
+from app.core.exceptions import DatabaseException
 
 router = APIRouter()
 
@@ -24,9 +24,5 @@ async def db_health_check():
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         return {"database": "connected"}
-    except SQLAlchemyError as e:
-        # Optional: log e here
-        raise HTTPException(
-            status_code=503,
-            detail={"database": "disconnected", "error": "Database not reachable"},
-        )
+    except SQLAlchemyError:
+        raise DatabaseException("Error connecting to database")
