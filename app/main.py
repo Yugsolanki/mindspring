@@ -7,6 +7,15 @@ from app.core.database import engine, SessionLocal
 from contextlib import asynccontextmanager
 from sqlalchemy import select
 from app.models import Website
+from app.core.exceptions import (
+    AppException,
+    app_exception_handler,
+    validation_exception_handler,
+    sqlalchemy_exception_handler,
+    generic_exception_handler,
+)
+from sqlalchemy.exc import SQLAlchemyError
+from fastapi.exceptions import RequestValidationError
 
 
 @asynccontextmanager
@@ -84,6 +93,12 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+# Register exception handlers
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
 # If running directly for debugging
 if __name__ == "__main__":

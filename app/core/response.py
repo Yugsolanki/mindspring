@@ -6,11 +6,11 @@ T = TypeVar("T")
 
 class SuccessResponseModel(BaseModel, Generic[T]):
     status: str = "success"
-    message: str
+    message: Optional[str] = None
     data: Optional[T] = None
 
 
 class ErrorResponseModel(BaseModel, Generic[T]):
     status: str = "error"
-    message: str
+    message: Optional[str] = None
     error: Optional[T] = None
