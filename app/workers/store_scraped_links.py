@@ -27,7 +27,7 @@ async def _store_scraped_links(all_links: list[str]):
 
     async with get_session() as session:
         repo = ScrapedResourcesRepository(session=session)
-        existing_urls = set(await repo.list_urls())
+        existing_urls = set(await repo.get_urls())
 
         new_scraped_resources = []
 
