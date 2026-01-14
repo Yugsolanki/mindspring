@@ -16,6 +16,9 @@ from app.core.exceptions import (
 )
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi.exceptions import RequestValidationError
+from prometheus_fastapi_instrumentator import Instrumentator
+from app.core.monitoring import create_metrics_middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 @asynccontextmanager
@@ -89,6 +92,9 @@ def create_app() -> FastAPI:
     # Include Routers
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
+    # Add metrics middleware
+    app.add_middleware(BaseHTTPMiddleware, dispatch=create_metrics_middleware())
+
     return app
 
 
@@ -99,6 +105,33 @@ app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
+
+# Prometheus Instrumentation
+instrumentator = Instrumentator(
+    should_group_status_codes=False,
+    should_ignore_untemplated=True,
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/health"],
+    inprogress_name="mindspring_inprogress_requests",
+    inprogress_labels=True,
+)
+
+# Add default metrics
+instrumentator.instrument(app)
+instrumentator.expose(app, endpoint="/metrics", include_in_schema=True)
+
+
+# Root
+@app.get("/")
+def root():
+    return {"message": "Welcome to MindSpring API"}
+
+
+# Health Check
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 
 # If running directly for debugging
 if __name__ == "__main__":
