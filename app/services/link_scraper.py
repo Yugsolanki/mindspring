@@ -70,6 +70,8 @@ async def run_scraper():
     all_links = list(scraped_links) + [
         link for link in external_links if is_allowed_content_type(link)
     ]
+    # remove duplicates, lower them and rstrip trailing slashes
+    all_links = list({link.lower().rstrip("/") for link in all_links})
 
     store_scraped_links.delay(all_links)
 
