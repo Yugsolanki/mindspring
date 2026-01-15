@@ -6,6 +6,7 @@ from app.core.response import SuccessResponseModel
 from app.utils.async_utils import run_async
 from app.core.logging import logger
 from app.core.database import get_session
+from app.core.singleton_task import singleton_task
 
 
 @shared_task(
@@ -15,6 +16,7 @@ from app.core.database import get_session
     max_retries=3,
     retry_backoff=30,
 )
+@singleton_task("store_scraped_links", heartbeat_interval=15, stale_after=60)
 def store_scraped_links(self, all_links: list[str]):
     return run_async(_store_scraped_links(all_links))
 
