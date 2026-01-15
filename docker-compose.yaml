@@ -62,6 +62,7 @@ services:
 
   api:
     build: .
+    image: mindspring_api:latest
     container_name: mindspring_api
     restart: unless-stopped
     profiles: [prod]
@@ -83,7 +84,7 @@ services:
       - mindspring_net
 
   celery:
-    build: .
+    image: mindspring_api:latest
     container_name: mindspring_celery
     restart: unless-stopped
     profiles: [prod]
@@ -103,11 +104,10 @@ services:
       - mindspring_net
 
   flower:
-    build: .
+    image: mher/flower:latest
     container_name: mindspring_flower
     restart: unless-stopped
     profiles: [prod]
-    command: celery -A app.core.celery_app flower --loglevel=info --port=5555
     env_file: .env.docker
     environment:
       - PYTHONUNBUFFERED=1
@@ -117,6 +117,7 @@ services:
     volumes:
       - .:/app
     depends_on:
+      - redis
       - celery
     networks:
       - mindspring_net
