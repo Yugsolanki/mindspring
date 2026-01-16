@@ -1,4 +1,12 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, ARRAY
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    UniqueConstraint,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -10,20 +18,24 @@ class ScrapedContent(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Foreign Key linking to ScrapedResource
-    resource_id = Column(Integer, ForeignKey("scraped_resources.id"), index=True)
+    resource_id = Column(
+        Integer,
+        ForeignKey("scraped_resources.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
-    content = Column(String)  # The actual text content extracted from the resource
+    content = Column(Text, nullable=False)
 
-    # Vector Embeddings
-    dense_embeddings = Column(
-        ARRAY(Float)
-    )  # For dense vector search (e.g., cosine similarity)
-    sparse_embeddings = Column(ARRAY(Float))  # For hybrid search (BM25 or Splade)
+    content_hash = Column(String(128), nullable=False, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    # Ensure content_hash is unique
+    __table_args__ = (UniqueConstraint("content_hash", name="unique_content_hash"),)
 
     # Relationships
     resource = relationship("ScrapedResource", back_populates="contents")
