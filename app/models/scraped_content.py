@@ -6,6 +6,7 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     Text,
+    JSON,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -28,6 +29,8 @@ class ScrapedContent(Base):
     content = Column(Text, nullable=False)
 
     content_hash = Column(String(128), nullable=False, index=True)
+
+    meta_data = Column(JSON, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(

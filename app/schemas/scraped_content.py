@@ -11,6 +11,7 @@ class ScrapedContentBase(BaseModel):
     )
     content: str = Field(..., description="The extracted text content")
     content_hash: str = Field(..., description="The hash of the content")
+    metadata: dict = Field(..., description="Metadata associated with the content")
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -31,6 +32,7 @@ class ScrapedContentUpdate(BaseModel):
 
     content: Optional[str] = None
     content_hash: Optional[str] = None
+    metadata: Optional[dict] = None
 
     # ==================
     # Model Validators
