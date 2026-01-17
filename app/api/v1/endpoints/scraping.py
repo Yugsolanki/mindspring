@@ -13,5 +13,5 @@ def scrape_links():
 
 @router.post("/content")
 def scrape_content():
-    task = content_scraper.delay(a=5, b=6)
+    task = content_scraper.delay()
     return {"message": "Content scraping started", "task_id": task.id}

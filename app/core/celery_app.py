@@ -1,6 +1,9 @@
 from celery import Celery, current_app
 from app.core.config import settings
-from app.workers import link_scraper, content_scraper  # noqa
+
+# fmt: off
+from app.workers import (link_scraper, content_scraper, store_scraped_contents, store_scraped_links)  # noqa
+# fmt: on
 
 
 def make_celery():
@@ -13,7 +16,6 @@ def make_celery():
         result_serializer="json",
         timezone="Asia/Kolkata",
         enable_utc=True,
-        # Result Backend Configuration
         task_track_started=True,
         result_expires=3600,
     )
