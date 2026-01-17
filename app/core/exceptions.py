@@ -30,6 +30,28 @@ class DatabaseException(AppException):
         super().__init__(message, status_code=500)
 
 
+class ScrapingException(AppException):
+    """Base exception for scraping errors"""
+
+
+class ScrapingTimeoutException(ScrapingException):
+    def __init__(self, url: str, timeout: int):
+        super().__init__(f"Timeout ({timeout}s) scraping {url}", status_code=408)
+
+
+class ScrapingRateLimitException(ScrapingException):
+    def __init__(self, url: str, retry_after: int | None = None):
+        msg = f"Rate limited scraping {url}"
+        if retry_after:
+            msg += f" (retry after {retry_after}s)"
+        super().__init__(msg, status_code=429)
+
+
+class ScrapingAuthException(ScrapingException):
+    def __init__(self, url: str):
+        super().__init__(f"Authentication required for {url}", status_code=403)
+
+
 async def app_exception_handler(request: Request, exc: AppException):
     """Handle custom application exceptions"""
     logger.error(
