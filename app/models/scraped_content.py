@@ -26,6 +26,8 @@ class ScrapedContent(Base):
         index=True,
     )
 
+    url = Column(String(2048), nullable=False, default="")
+
     content = Column(Text, nullable=False)
 
     content_hash = Column(String(128), nullable=False, index=True)
