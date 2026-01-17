@@ -6,7 +6,7 @@ from libs.TurboScraper.api_scraper import (
 from app.schemas.website import WebsiteResponse
 from app.core.logging import logger
 from app.utils.mimetypes import is_allowed_content_type
-from app.workers.store_scraped_links import store_scraped_links
+from app.utils.url_utils import normalize_url
 from app.core.response import SuccessResponseModel, ErrorResponseModel
 
 
@@ -46,6 +46,7 @@ async def run_scraper():
     Run scraper to scrape website
     """
     from app.core.loaders import load_website
+    from app.workers.store_scraped_links import store_scraped_links
 
     config: WebsiteResponse = await load_website()
     scraper = await create_scraper(config)
@@ -70,8 +71,10 @@ async def run_scraper():
     all_links = list(scraped_links) + [
         link for link in external_links if is_allowed_content_type(link)
     ]
-    # remove duplicates, lower them and rstrip trailing slashes
-    all_links = list({link.lower().rstrip("/") for link in all_links})
+    # normalize URLs for consistent matching
+    all_links = [normalize_url(link) for link in all_links]
+    # remove duplicates
+    all_links = list(dict.fromkeys(all_links))
 
     store_scraped_links.delay(all_links)
 
