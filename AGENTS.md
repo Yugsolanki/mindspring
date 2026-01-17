@@ -44,8 +44,8 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 # Start Celery worker
 celery -A app.core.celery_app worker --loglevel=info
 
-# Start Beat scheduler
-celery -A app.core.celery_app beat --loglevel=info
+# Start flower for monitoring
+celery -A app.core.celery_app flower --loglevel=info --port=5555
 ```
 
 ### Database Migrations (Alembic)
