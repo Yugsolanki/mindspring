@@ -40,7 +40,7 @@ async def create_scraper(config: WebsiteResponse):
     return scraper
 
 
-async def run_scraper():
+async def run_scraper(progress_callback: callable = None):
     """
     Run scraper to scrape website
     """
@@ -52,7 +52,8 @@ async def run_scraper():
     try:
         logger.info(f"Scraping website: {config.domain}")
         scraped_links, external_links = await scraper.scrape_website(
-            request=ScrapeRequest(start_url=config.domain)
+            request=ScrapeRequest(start_url=config.domain),
+            progress_callback=progress_callback,
         )
     except Exception as e:
         logger.error(f"Error scraping website: {str(e)}")

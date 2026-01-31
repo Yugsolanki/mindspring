@@ -34,9 +34,6 @@ async def store_scraped_links_activity(input: StoreLinksInput) -> StoreLinksResu
     activity.logger.info(
         f"Starting store scraped links activity: {len(all_links)} links"
     )
-    activity.logger.info(f"All links: {all_links}")
-    activity.logger.info(f"Input: {input}")
-    activity.logger.info(f"Input type: {type(input)}")
     activity.heartbeat("Checking existing URL's...")
 
     try:

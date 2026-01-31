@@ -4,7 +4,7 @@ from app.core.config import settings
 from app.core.temporal_client import get_temporal_client
 from app.temporal.workflows.scraper_workflow import LinkScraperWorkflow
 from temporalio.client import Client
-from temporalio.common import WorkflowIDReusePolicy
+from temporalio.common import WorkflowIDReusePolicy, WorkflowIDConflictPolicy
 
 router = APIRouter()
 
@@ -21,6 +21,7 @@ async def scrape_links():
             workflow=LinkScraperWorkflow,
             id=workflow_id,
             task_queue=settings.TEMPORAL_TASK_QUEUE,
+            id_conflict_policy=WorkflowIDConflictPolicy.FAIL,
             id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
         )
 
