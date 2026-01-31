@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.17.2",
     "asyncpg>=0.31.0",
+    "black>=26.1.0",
     "celery>=5.6.2",
     "crawl4ai>=0.7.8",
     "croniter>=6.0.0",
@@ -15,7 +16,9 @@ dependencies = [
     "pydantic>=2.12.5",
     "python-simhash>=0.1.0",
     "redis>=7.1.0",
+    "ruff>=0.14.14",
     "sqlalchemy>=2.0.45",
+    "temporalio>=1.21.1",
     "turboscraper",
 ]
 

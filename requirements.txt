@@ -49,6 +49,8 @@ beautifulsoup4==4.14.3
     #   crawl4ai
 billiard==4.2.4
     # via celery
+black==26.1.0
+    # via mindspring
 brotli==1.2.0
     # via crawl4ai
 bs4==0.0.2
@@ -74,6 +76,7 @@ charset-normalizer==3.4.4
 click==8.3.1
     # via
     #   alphashape
+    #   black
     #   celery
     #   click-didyoumean
     #   click-log
@@ -231,8 +234,12 @@ multidict==6.7.0
     # via
     #   aiohttp
     #   yarl
+mypy-extensions==1.1.0
+    # via black
 networkx==3.6.1
     # via alphashape
+nexus-rpc==1.3.0
+    # via temporalio
 nltk==3.9.2
     # via crawl4ai
 nodeenv==1.10.0
@@ -249,14 +256,19 @@ openai==2.15.0
     # via litellm
 packaging==25.0
     # via
+    #   black
     #   huggingface-hub
     #   kombu
 patchright==1.57.2
     # via crawl4ai
+pathspec==1.0.4
+    # via black
 pillow==12.1.0
     # via crawl4ai
 platformdirs==4.5.1
-    # via virtualenv
+    # via
+    #   black
+    #   virtualenv
 playwright==1.57.0
     # via
     #   crawl4ai
@@ -271,6 +283,8 @@ propcache==0.4.1
     # via
     #   aiohttp
     #   yarl
+protobuf==6.33.4
+    # via temporalio
 psutil==7.2.1
     # via crawl4ai
 pycparser==2.23 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
@@ -315,6 +329,8 @@ python-multipart==0.0.21
     # via fastapi
 python-simhash==0.1.0
     # via mindspring
+pytokens==0.4.0
+    # via black
 pytz==2025.2
     # via
     #   croniter
@@ -364,6 +380,8 @@ rpds-py==0.30.0
     #   referencing
 rtree==1.4.1
     # via alphashape
+ruff==0.14.14
+    # via mindspring
 scipy==1.17.0
     # via alphashape
 sentry-sdk==2.48.0
@@ -390,6 +408,8 @@ sqlalchemy==2.0.45
     #   mindspring
 starlette==0.50.0
     # via fastapi
+temporalio==1.21.1
+    # via mindspring
 tf-playwright-stealth==1.2.0
     # via crawl4ai
 tiktoken==0.12.0
@@ -411,6 +431,8 @@ typer==0.21.0
     #   fastapi-cloud-cli
 typer-slim==0.21.1
     # via huggingface-hub
+types-protobuf==6.32.1.20251210
+    # via temporalio
 typing-extensions==4.15.0
     # via
     #   aiosignal
@@ -420,6 +442,7 @@ typing-extensions==4.15.0
     #   fastapi
     #   grpcio
     #   huggingface-hub
+    #   nexus-rpc
     #   openai
     #   pydantic
     #   pydantic-core
@@ -430,6 +453,7 @@ typing-extensions==4.15.0
     #   rich-toolkit
     #   sqlalchemy
     #   starlette
+    #   temporalio
     #   typer
     #   typer-slim
     #   typing-inspection

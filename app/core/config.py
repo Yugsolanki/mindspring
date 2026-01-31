@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
+    # Temporal
+    TEMPORAL_HOST: str = os.getenv("TEMPORAL_HOST", "localhost:7233")
+    TEMPORAL_NAMESPACE: str = os.getenv("TEMPORAL_NAMESPACE", "default")
+    TEMPORAL_TASK_QUEUE: str = os.getenv("TEMPORAL_TASK_QUEUE", "scraper-task-queue")
+
     # Constructed database url
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
