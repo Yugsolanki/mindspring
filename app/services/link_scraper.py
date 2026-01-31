@@ -7,7 +7,6 @@ from app.schemas.website import WebsiteResponse
 from app.core.logging import logger
 from app.utils.mimetypes import is_allowed_content_type
 from app.utils.url_utils import normalize_url
-from app.core.response import SuccessResponseModel, ErrorResponseModel
 
 
 async def create_scraper(config: WebsiteResponse):
@@ -46,7 +45,6 @@ async def run_scraper():
     Run scraper to scrape website
     """
     from app.core.loaders import load_website
-    from app.workers.store_scraped_links import store_scraped_links
 
     config: WebsiteResponse = await load_website()
     scraper = await create_scraper(config)
@@ -58,10 +56,7 @@ async def run_scraper():
         )
     except Exception as e:
         logger.error(f"Error scraping website: {str(e)}")
-        return ErrorResponseModel(
-            message="Error scraping website",
-            error=str(e),
-        ).model_dump_json()
+        raise
     finally:
         await scraper.close()
 
@@ -76,11 +71,4 @@ async def run_scraper():
     # remove duplicates
     all_links = list(dict.fromkeys(all_links))
 
-    store_scraped_links.delay(all_links)
-
-    return SuccessResponseModel(
-        message="Links scraped successfully",
-        data={
-            "links": all_links,
-        },
-    ).model_dump_json()
+    return all_links
