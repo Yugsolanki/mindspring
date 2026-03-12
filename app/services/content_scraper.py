@@ -6,6 +6,9 @@ from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from app.core.logging import logger
 from app.schemas.content_scraper import ScrapeConfig, ExtractedContent, PageMetadata
 from app.utils.url_utils import normalize_url
+from typing import Callable, Awaitable
+
+ProgressCallback = Callable[[str], Awaitable[None]]
 
 URL_PATTERN = re.compile(r"^https?://[^\s]+$")
 
@@ -66,6 +69,7 @@ def _create_crawler_config(timeout: int) -> CrawlerRunConfig:
 async def scrape_content(
     urls: list[str],
     config: ScrapeConfig,
+    progress_callback: ProgressCallback,
 ) -> list[ExtractedContent]:
     if not urls:
         return []
@@ -99,9 +103,14 @@ async def scrape_content(
             if not failed_urls:
                 break
 
-            logger.info(
-                f"Attempt {attempt + 1}/{config.max_retries}: {len(failed_urls)} URLs remaining"
-            )
+            if attempt > 0:
+                # Only report retries — first attempt is reported by the caller
+                await progress_callback(
+                    f"Retrying {len(failed_urls)} failed URLs (attempt {attempt + 1}/{config.max_retries})",
+                )
+                logger.info(
+                    f"Attempt {attempt + 1}/{config.max_retries}: {len(failed_urls)} URLs remaining"
+                )
 
             raw_results = await crawler.arun_many(
                 urls=failed_urls, config=crawler_config
@@ -163,14 +172,16 @@ async def scrape_content(
 
 
 async def run_content_scraper(
+    progress_callback: ProgressCallback,
     config: ScrapeConfig | None = None,
-):
+) -> tuple[list[ExtractedContent], int, int]:
     if config is None:
         config = ScrapeConfig()
 
     from app.repositories.scraped_resources_repository import ScrapedResourcesRepository
     from app.core.database import get_session
-    from app.workers.store_scraped_contents import store_scraped_contents as store_task
+
+    progress_callback("Starting content scraper...")
 
     # Get URLs and IDs from the database
     async with get_session() as session:
@@ -178,8 +189,12 @@ async def run_content_scraper(
         urls_and_ids: list[tuple[str, int]] = await repo.get_urls_and_ids()
 
     if not urls_and_ids:
+        await progress_callback("No URLs found to scrape")
         logger.info("No URLs found to scrape")
-        return {"message": "No URLs found to scrape", "processed": 0}
+        return [], 0, 0
+
+    progress_callback(f"Found {len(urls_and_ids)} URLs to scrape")
+    logger.info(f"Found {len(urls_and_ids)} URLs to scrape")
 
     # Create a mapping of normalized URLs to resource IDs
     url_to_resource_id = {normalize_url(url): rid for url, rid in urls_and_ids}
@@ -199,11 +214,15 @@ async def run_content_scraper(
             f"Processing batch {batch_idx + 1}/{len(batches)} ({len(batch)} URLs)"
         )
         batch_urls = [normalize_url(url) for url, _ in batch]
-        scraped = await scrape_content(batch_urls, config)
+        scraped = await scrape_content(batch_urls, config, progress_callback)
 
         # Assign resource IDs to scraped content
         for content in scraped:
             content.resource_id = url_to_resource_id.get(content.url, 0)
+
+        await progress_callback(
+            f"Completed batch {batch_idx + 1}/{len(batches)}: Scraped {len(scraped)} items"
+        )
 
         return [c for c in scraped if c.resource_id]
 
@@ -232,12 +251,4 @@ async def run_content_scraper(
 
     logger.info(f"Scraping complete: {len(successful)} succeeded, {len(failed)} failed")
 
-    if results:
-        store_task.delay([content.model_dump() for content in results])
-
-    return {
-        "message": f"Scraped {len(results)} URLs",
-        "processed": len(results),
-        "successful": len(successful),
-        "failed": len(failed),
-    }
+    return successful, len(successful), len(failed)

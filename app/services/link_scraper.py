@@ -7,6 +7,7 @@ from app.schemas.website import WebsiteResponse
 from app.core.logging import logger
 from app.utils.mimetypes import is_allowed_content_type
 from app.utils.url_utils import normalize_url
+from typing import Callable, Awaitable
 
 
 async def create_scraper(config: WebsiteResponse):
@@ -40,7 +41,9 @@ async def create_scraper(config: WebsiteResponse):
     return scraper
 
 
-async def run_scraper(progress_callback: callable = None):
+async def run_scraper(
+    progress_callback: Callable[[str], Awaitable[None]],
+):
     """
     Run scraper to scrape website
     """
