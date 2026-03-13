@@ -9,13 +9,6 @@ from app.schemas.content_scraper import ExtractedContent
 
 
 @dataclass
-class StoreContentInput:
-    """Input for store content activity"""
-
-    content_list: List[ExtractedContent]
-
-
-@dataclass
 class StoreContentResult:
     """Result of store content activity"""
 
@@ -27,12 +20,12 @@ class StoreContentResult:
 
 
 @activity.defn(name="store_content")
-async def store_content_activity(input: StoreContentInput) -> StoreContentResult:
+async def store_content_activity(input: List[ExtractedContent]) -> StoreContentResult:
     """
     Activity that stores scraped content in the database.
     Equivalent to the Celery store_scraped_contents task.
     """
-    extracted_content = input.content_list
+    extracted_content = input
 
     activity.logger.info(
         f"Starting store content activity: {len(extracted_content)} items"

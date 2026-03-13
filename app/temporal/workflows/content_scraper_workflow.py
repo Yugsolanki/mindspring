@@ -53,19 +53,9 @@ class ContentScraperWorkflow:
                 )
 
             if scraper_result.content_list:
-                # Step 2: Store Scraped Content
-                # The activity expects a StoreContentInput dataclass, not a raw list.  Build
-                # the input explicitly (or pass as keyword) to avoid Temporal decoding errors.
-                from app.temporal.activities.store_content_activity import (
-                    StoreContentInput,
-                )
-
-                store_input = StoreContentInput(
-                    content_list=scraper_result.content_list
-                )
                 store_result: StoreContentResult = await workflow.execute_activity(
                     store_content_activity,
-                    store_input,
+                    scraper_result.content_list,
                     **STORE_CONTENT_ACTIVITY_OPTIONS,
                 )
 
